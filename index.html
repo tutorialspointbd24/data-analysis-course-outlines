@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Analysis Course | Tutorials Point Bangladesh</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="logos.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after {
@@ -531,6 +532,38 @@
 
         .cta-deadline span { color: #f59e0b; font-weight: 700; }
 
+        /* ── Daily countdown (new) ── */
+        .cta-countdown {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 0.85rem;
+            background: rgba(198,40,40,0.12);
+            border: 1px solid rgba(255,107,107,0.35);
+            color: #ffd9d9;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.4rem 1.3rem;
+            border-radius: 30px;
+            letter-spacing: 0.02em;
+        }
+
+        .cta-countdown .countdown-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            box-shadow: 0 0 8px #ff6b6b;
+            animation: pulse 1.3s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        .cta-countdown #countdown-timer {
+            color: #ffb300;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.04em;
+        }
+
         /* ──────────────────────────────
            FOOTER LINE
         ────────────────────────────── */
@@ -849,7 +882,12 @@
             </a>
             <div>
                 <div class="cta-deadline">
-                    শেষ তারিখ: <span>২২ জুন ২০২৬</span> &nbsp;|&nbsp; মাত্র <span>৭টি</span> সিট অবশিষ্ট
+                    শেষ তারিখ: <span id="deadline-date">২২ জুন ২০২৬</span> &nbsp;|&nbsp; মাত্র <span>৭টি</span> সিট অবশিষ্ট
+                </div>
+                <br>
+                <div class="cta-countdown">
+                    <div class="countdown-dot"></div>
+                    অফারটি আজকেই শেষ হচ্ছে।  <span id="countdown-timer">০০:০০:০০</span> আর বাকি আছে। 
                 </div>
             </div>
         </div>
@@ -887,6 +925,55 @@
         e.preventDefault();
         alert('🎓 ধন্যবাদ! আপনার এনরোলমেন্ট প্রক্রিয়া শুরু হয়েছে।');
     });
+
+    // ── Dynamic "Last Date" — always shows today's date in Bengali ──
+    const bnMonths = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+    const enDigits = '0123456789';
+    const bnDigits = '০১২৩৪৫৬৭৮৯';
+
+    function toBengaliDigits(input) {
+        return String(input).split('').map(ch => {
+            const idx = enDigits.indexOf(ch);
+            return idx > -1 ? bnDigits[idx] : ch;
+        }).join('');
+    }
+
+    function renderTodayAsDeadline() {
+        const el = document.getElementById('deadline-date');
+        if (!el) return;
+        const now = new Date();
+        const day = toBengaliDigits(now.getDate());
+        const month = bnMonths[now.getMonth()];
+        const year = toBengaliDigits(now.getFullYear());
+        el.textContent = `${day} ${month} ${year}`;
+    }
+
+    // ── Daily 24-hour countdown — resets every midnight, ticks down every second ──
+    function renderDailyCountdown() {
+        const el = document.getElementById('countdown-timer');
+        if (!el) return;
+        const now = new Date();
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        let diffMs = endOfDay - now;
+        if (diffMs < 0) diffMs = 0;
+
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const pad = (n) => String(n).padStart(2, '0');
+        const formatted = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        el.textContent = toBengaliDigits(formatted);
+    }
+
+    renderTodayAsDeadline();
+    renderDailyCountdown();
+    setInterval(() => {
+        renderDailyCountdown();
+    }, 1000);
+    // Refresh the date label once a minute too, in case the page stays open past midnight
+    setInterval(renderTodayAsDeadline, 60000);
 </script>
 </body>
 </html>
